@@ -24,15 +24,16 @@ INVALIDATE_TOKEN = 'https://chpp.hattrick.org/oauth/invalidate_token.ashx'
 CONSUMER_KEY = 'MF7LcPoUfIfgpMX0QS7Dr3'
 CONSUMER_SECRET = 'tw691NKJojQzXwCm3ojAGedYpNLb2EIeQNjVQs3IODw'
 
-def gen_oauth_request(req_url):
+def gen_oauth_request(req_url, ver):
     return oauth.Request(method='GET', url=req_url,
                         parameters= { 'oauth_callback': 'oob', 'oauth_nonce': oauth.generate_nonce(),
-                                      'oauth_timestamp': oauth.generate_timestamp(),'oauth_version': '1.0' },
+                                      'oauth_timestamp': oauth.generate_timestamp(), 'oauth_version': '1.0',
+                                      'oauth_verifier': ver},
                         is_form_encoded=True)
 
 consumer = oauth.Consumer(CONSUMER_KEY, CONSUMER_SECRET)
 
-request = gen_oauth_request(REQUEST_TOKEN)
+request = gen_oauth_request(REQUEST_TOKEN, None)
 request.sign_request(oauth.SignatureMethod_HMAC_SHA1(), consumer, None)
 
 with contextlib.closing(urllib.request.urlopen(request.to_url())) as whatever:
@@ -44,8 +45,8 @@ with contextlib.closing(urllib.request.urlopen(request.to_url())) as whatever:
     oauth_token = token[b'oauth_token'].decode('ascii')
     oauth_secret = token[b'oauth_token_secret'].decode('ascii')
 
-    print(oauth_token)
-    print(oauth_secret)
+    logging.info(oauth_token)
+    logging.info(oauth_secret)
 
     print("Open in browser:")
     print(f"https://chpp.hattrick.org/oauth/authorize.aspx?oauth_token={oauth_token}")
@@ -53,12 +54,7 @@ with contextlib.closing(urllib.request.urlopen(request.to_url())) as whatever:
     print("Paste code here")
     code = input()
 
-request = oauth.Request(method='GET', url = ACCESS_TOKEN,
-                       parameters={'oauth_nonce': oauth.generate_nonce(),
-                                   'oauth_timestamp': oauth.generate_timestamp(),
-                                   'oauth_version': '1.0', 'oauth_verifier': code },
-                       is_form_encoded = True)
-
+request = gen_oauth_request(ACCESS_TOKEN, code)
 otoken = oauth.Token(oauth_token, oauth_secret)
 otoken.set_verifier(code)
 
@@ -66,12 +62,12 @@ request.sign_request(oauth.SignatureMethod_HMAC_SHA1(), consumer, otoken)
 
 with contextlib.closing(urllib.request.urlopen(request.to_url())) as whatever:
     responseData = whatever.read()
-    request_token = dict(urlparse.parse_qsl(responseData))
+    request_token = dict(urllib.parse.parse_qsl(responseData))
     token = oauth.Token(request_token[b'oauth_token'], request_token[b'oauth_token_secret'])
 
-my_treasure_key = token.key
-user_treasure_secret = token.secret
-logging.info('MY_TREEEASUREEEEEE :', my_treasure_key, user_treasure_secret )
+my_treasure_key = token.key.decode('ascii')
+user_treasure_secret = token.secret.decode('ascii')
+logging.info('MY_TREEEASUREEEEEE : %s  %s', my_treasure_key, user_treasure_secret)
 
 
 
