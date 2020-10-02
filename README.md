@@ -1,0 +1,2 @@
+# pyttrick
+ Hattrick python tool
