@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 
 from urllib.parse import urlencode, quote_plus
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QPushButton, QTextEdit, QGridLayout, QDialog, QLineEdit, QMessageBox
-
+from PyQt5.QtGui import QFont
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
@@ -71,7 +71,7 @@ class htAuth(QDialog):
 
         okButton.setDisabled(True)
         self.setLayout(qbox)
-        self.setMinimumWidth(600)
+        self.setMinimumWidth(300)
         self.setWindowTitle('Authorize Pyttrick')
 
     def editChanged(self):
@@ -179,6 +179,13 @@ def main():
     global treasure
     app = QApplication(sys.argv)
     app.setStyleSheet(open('themes/NightStalker.qss').read())
+    font = QFont();
+    font.setFamily(font.defaultFamily());
+    font.setPointSize(font.pointSize() + 2)
+
+    app.setFont(font);
+
+
     treasure = load_treasure()
     whatever =  { 'version' : '1.3'}
     rep = ht_gimme('economy', whatever)
