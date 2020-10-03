@@ -4,6 +4,9 @@ import oauth2 as oauth
 import logging, sys
 import json
 import os
+import xml.etree.ElementTree as ET
+
+from urllib.parse import urlencode, quote_plus
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
@@ -21,14 +24,17 @@ AUTHENTHICATE = 'https://chpp.hattrick.org/oauth/authenticate.aspx'
 ACCESS_TOKEN = 'https://chpp.hattrick.org/oauth/access_token.ashx'
 CHECK_TOKEN = 'https://chpp.hattrick.org/oauth/check_token.ashx'
 INVALIDATE_TOKEN = 'https://chpp.hattrick.org/oauth/invalidate_token.ashx'
+HT_RESOURCES = 'https://chpp.hattrick.org/chppxml.ashx'
 
 CONSUMER_KEY = 'MSFQ72LlchPtooUdf3Iyfsg4p5MvXs07Q5S271Dsrf3x'
 CONSUMER_SECRET = 'tqwx6d9416N6K3JdonjdQszzXdweCcmc3sowjgAeGge3dtYtp3NeLtbd23E3IsewQfNbjeVfQdsa3fIvOtDfwr'
 
+treasure = None
+
 def decrypt_treasure(s):
     return s[::2]
 
-def gen_oauth_request(req_url, ver):
+def gen_oauth_request(req_url, ver = None):
     return oauth.Request(method='GET', url=req_url,
                         parameters= { 'oauth_callback': 'oob', 'oauth_nonce': oauth.generate_nonce(),
                                       'oauth_timestamp': oauth.generate_timestamp(), 'oauth_version': '1.0',
@@ -90,9 +96,35 @@ def load_treasure():
 
     return treasure
 
+def ht_gimme(that, ht_opts = []):
+
+    consumer = oauth.Consumer(decrypt_treasure(CONSUMER_KEY), decrypt_treasure(CONSUMER_SECRET))
+    ht_enc = urlencode(ht_opts, quote_via=quote_plus)
+    url = HT_RESOURCES + "?file=" + that + "&" + ht_enc
+    request = gen_oauth_request(url)
+    token = oauth.Token(treasure[0].encode('ascii'), treasure[1].encode('ascii'))
+    request.sign_request(oauth.SignatureMethod_HMAC_SHA1(), consumer, token)
+    with contextlib.closing(urllib.request.urlopen(request.to_url())) as whatever:
+        return whatever.read()
+
 
 def main():
+    global treasure
     treasure = load_treasure()
+
+    whatever =  { 'version' : '1.3'}
+    rep = ht_gimme('economy', whatever)
+    root = ET.fromstring(rep)
+
+    data = ''
+    for x in root.findall('Team'):
+        data = x.find('TeamName').text
+
+    print ("Team name: ", data)
+
+
+
+
 
 
 if __name__ == "__main__":
