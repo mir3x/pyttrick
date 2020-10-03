@@ -1,8 +1,9 @@
 import contextlib
 import urllib.request
-from urllib.parse import urlparse
 import oauth2 as oauth
 import logging, sys
+import json
+import os
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
@@ -66,16 +67,31 @@ def ht_authenticate():
         token = oauth.Token(request_token[b'oauth_token'], request_token[b'oauth_token_secret'])
 
     my_treasure_key = token.key.decode('ascii')
-    user_treasure_secret = token.secret.decode('ascii')
-    logging.info('MY_TREEEASUREEEEEE : %s  %s', my_treasure_key, user_treasure_secret)
+    my_treasure_secret = token.secret.decode('ascii')
+    logging.info('MY_TREEEASUREEEEEE : %s  %s', my_treasure_key, my_treasure_secret)
+    return (my_treasure_key, my_treasure_secret)
 
+def load_treasure():
+    filejson = "treasure.json"
+
+    if os.path.isfile(filejson):
+        with open(filejson, "r") as reader:
+            jtreasure = json.load(reader)
+            treasure = json.loads(jtreasure)
+    else:
+        treasure = ht_authenticate()
+        enc = json.dumps(treasure)
+        with open(filejson, "w") as writer:
+            json.dump(enc, writer)
+        writer.close()
+
+    return treasure
 
 def main():
-    ht_authenticate()
+    load_treasure()
 
 if __name__ == "__main__":
     main()
-
 
 
 
