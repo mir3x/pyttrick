@@ -22,8 +22,11 @@ ACCESS_TOKEN = 'https://chpp.hattrick.org/oauth/access_token.ashx'
 CHECK_TOKEN = 'https://chpp.hattrick.org/oauth/check_token.ashx'
 INVALIDATE_TOKEN = 'https://chpp.hattrick.org/oauth/invalidate_token.ashx'
 
-CONSUMER_KEY = 'MF7LcPoUfIfgpMX0QS7Dr3'
-CONSUMER_SECRET = 'tw691NKJojQzXwCm3ojAGedYpNLb2EIeQNjVQs3IODw'
+CONSUMER_KEY = 'MSFQ72LlchPtooUdf3Iyfsg4p5MvXs07Q5S271Dsrf3x'
+CONSUMER_SECRET = 'tqwx6d9416N6K3JdonjdQszzXdweCcmc3sowjgAeGge3dtYtp3NeLtbd23E3IsewQfNbjeVfQdsa3fIvOtDfwr'
+
+def decrypt_treasure(s):
+    return s[::2]
 
 def gen_oauth_request(req_url, ver):
     return oauth.Request(method='GET', url=req_url,
@@ -33,7 +36,7 @@ def gen_oauth_request(req_url, ver):
                         is_form_encoded=True)
 
 def ht_authenticate():
-    consumer = oauth.Consumer(CONSUMER_KEY, CONSUMER_SECRET)
+    consumer = oauth.Consumer(decrypt_treasure(CONSUMER_KEY), decrypt_treasure(CONSUMER_SECRET))
     request = gen_oauth_request(REQUEST_TOKEN, None)
     request.sign_request(oauth.SignatureMethod_HMAC_SHA1(), consumer, None)
 
@@ -87,8 +90,10 @@ def load_treasure():
 
     return treasure
 
+
 def main():
-    load_treasure()
+    treasure = load_treasure()
+
 
 if __name__ == "__main__":
     main()
