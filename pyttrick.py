@@ -178,7 +178,7 @@ def ht_gimme(that, ht_opts = []):
 def main():
     global treasure
     app = QApplication(sys.argv)
-
+    app.setStyleSheet(open('themes/NightStalker.qss').read())
     treasure = load_treasure()
     whatever =  { 'version' : '1.3'}
     rep = ht_gimme('economy', whatever)
