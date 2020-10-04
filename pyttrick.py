@@ -1,24 +1,19 @@
 import contextlib
-import urllib.request
-import oauth2 as oauth
-import logging, sys
 import json
+import logging
 import os
+import sys
+import urllib.request
 import xml.etree.ElementTree as ET
+from urllib.parse import quote_plus, urlencode
 
-from urllib.parse import urlencode, quote_plus
-from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QPushButton, QTextEdit, QGridLayout, QDialog, QLineEdit, QMessageBox
+import oauth2 as oauth
 from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import (QApplication, QDialog, QGridLayout, QLabel,
+                             QLineEdit, QMainWindow, QMessageBox, QPushButton,
+                             QTabWidget, QTextEdit, QVBoxLayout, QWidget)
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-
-# from hattrick
-# Path to protected resources: All CHPP XML files are downloaded from https://chpp.hattrick.org/chppxml.ashx,
-# specifying which file is requested using the parameter file=teamdetails (for example). See API Documentation for more info.
-# Use GET method for all requests
-# Use HMAC-SHA1 to sign all requests
-# Always provide oauth_callback in the request to request_token.ashx.
-# If your product cannot receive a callback, use oauth_callback=oob
 
 REQUEST_TOKEN = 'https://chpp.hattrick.org/oauth/request_token.ashx'
 AUTHORIZE = 'https://chpp.hattrick.org/oauth/authorize.aspx'
@@ -174,6 +169,57 @@ def ht_gimme(that, ht_opts = []):
     with contextlib.closing(urllib.request.urlopen(request.to_url())) as whatever:
         return whatever.read()
 
+class generalTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        qgrid = QGridLayout()
+        self.setLayout(qgrid)
+
+class squadTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        qgrid = QGridLayout()
+        self.setLayout(qgrid)
+
+    def update(data):
+        pass
+
+class matchesTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        qgrid = QGridLayout()
+        self.setLayout(qgrid)
+
+
+class mainWidow(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        tabWidget = QTabWidget();
+        general_Tab = generalTab()
+        squad_Tab = squadTab()
+        matches_Tab = matchesTab()
+        tabWidget.addTab(general_Tab, "Overview")
+        tabWidget.addTab(squad_Tab, "Squad")
+        tabWidget.addTab(matches_Tab, "Matches")
+
+        vbox =  QVBoxLayout();
+        vbox.addWidget(tabWidget);
+        self.setLayout(vbox);
+        self.adjustSize()
+        self.show()
+
 
 def main():
     global treasure
@@ -182,23 +228,22 @@ def main():
     font = QFont();
     font.setFamily(font.defaultFamily());
     font.setPointSize(font.pointSize() + 2)
-
     app.setFont(font);
 
+    a = mainWidow()
 
     treasure = load_treasure()
     whatever =  { 'version' : '1.3'}
-    rep = ht_gimme('economy', whatever)
+    rep = ht_gimme('teamdetails')
     root = ET.fromstring(rep)
-
+    print(rep)
     data = ''
     for x in root.findall('Team'):
         data = x.find('TeamName').text
 
     print ("Team name: ", data)
 
-    exit(0)
-
+    return app.exec()
 
 
 if __name__ == "__main__":
